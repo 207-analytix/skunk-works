@@ -67,6 +67,8 @@ a, button, input, textarea, select { transition: all var(--transition-interactiv
 .badge-live { display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-xs); color: var(--color-success); background: var(--color-success-highlight); padding: var(--space-1) var(--space-3); border-radius: var(--radius-full); font-weight: 500; }
 .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--color-success); animation: pulse 2s ease-in-out infinite; }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+.btn-roles { display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--text-xs); font-weight: 600; color: var(--color-text-muted); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-1) var(--space-3); background: transparent; letter-spacing: 0.03em; }
+.btn-roles:hover { background: var(--color-surface-offset); color: var(--color-text); border-color: var(--color-primary); }
 .main { display: grid; grid-template-columns: 1fr 380px; overflow: hidden; height: calc(100dvh - 65px); }
 .pipeline-col { overflow-y: auto; padding: var(--space-8); border-right: 1px solid var(--color-border); }
 .intake-col { overflow-y: auto; padding: var(--space-8); background: var(--color-surface); }
@@ -128,6 +130,30 @@ a, button, input, textarea, select { transition: all var(--transition-interactiv
 .toast-error .toast-icon { color: var(--color-error); }
 .empty-state { display: flex; flex-direction: column; align-items: center; text-align: center; padding: var(--space-12) var(--space-8); color: var(--color-text-muted); gap: var(--space-3); }
 .empty-state p { font-size: var(--text-sm); max-width: 28ch; }
+/* ROLES PANEL */
+.roles-overlay { position: fixed; inset: 0; background: oklch(0 0 0 / 0.55); z-index: 300; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+.roles-overlay.open { opacity: 1; pointer-events: all; }
+.roles-panel { position: fixed; top: 0; right: 0; height: 100dvh; width: min(520px, 100vw); background: var(--color-surface); border-left: 1px solid var(--color-border); z-index: 301; transform: translateX(100%); transition: transform 0.35s cubic-bezier(0.16,1,0.3,1); display: flex; flex-direction: column; overflow: hidden; }
+.roles-panel.open { transform: translateX(0); }
+.roles-panel-header { display: flex; align-items: center; justify-content: space-between; padding: var(--space-5) var(--space-6); border-bottom: 1px solid var(--color-border); flex-shrink: 0; }
+.roles-panel-title { font-family: var(--font-display); font-size: var(--text-lg); }
+.roles-panel-close { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: var(--radius-md); color: var(--color-text-muted); font-size: 18px; }
+.roles-panel-close:hover { background: var(--color-surface-offset); color: var(--color-text); }
+.roles-panel-body { overflow-y: auto; padding: var(--space-6); flex: 1; }
+.roles-intro { font-size: var(--text-sm); color: var(--color-text-muted); margin-bottom: var(--space-6); line-height: 1.7; }
+.role-card { background: var(--color-surface-offset); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-5); margin-bottom: var(--space-4); }
+.role-header { display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-3); }
+.role-icon { width: 34px; height: 34px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+.role-name { font-size: var(--text-sm); font-weight: 700; }
+.role-slug { font-size: var(--text-xs); color: var(--color-text-faint); font-family: monospace; margin-top: 1px; }
+.role-desc { font-size: var(--text-sm); color: var(--color-text-muted); line-height: 1.65; margin-bottom: var(--space-3); }
+.role-stages { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.role-stage-tag { font-size: 10px; font-weight: 600; padding: 2px var(--space-2); border-radius: var(--radius-full); background: var(--color-surface-dynamic); color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.role-talking { margin-top: var(--space-3); padding-top: var(--space-3); border-top: 1px solid var(--color-divider); }
+.role-talking-label { font-size: var(--text-xs); font-weight: 600; color: var(--color-primary); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: var(--space-2); }
+.role-talking ul { list-style: none; display: flex; flex-direction: column; gap: var(--space-1); }
+.role-talking li { font-size: var(--text-xs); color: var(--color-text-muted); padding-left: var(--space-4); position: relative; line-height: 1.6; }
+.role-talking li::before { content: '→'; position: absolute; left: 0; color: var(--color-primary); font-size: 10px; top: 2px; }
 @media (max-width: 900px) { .main { grid-template-columns: 1fr; height: auto; } .pipeline-col { border-right: none; border-bottom: 1px solid var(--color-border); } }
 @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } .header { padding: var(--space-4); } }
 </style>
@@ -145,6 +171,10 @@ a, button, input, textarea, select { transition: all var(--transition-interactiv
     </div>
   </div>
   <div style="display:flex;align-items:center;gap:var(--space-3)">
+    <button class="btn-roles" onclick="openRoles()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Team Roles
+    </button>
     <div class="badge-live"><span class="live-dot"></span>Live DB</div>
     <span style="font-size:var(--text-xs);color:var(--color-text-faint)">May 2026 Demo</span>
   </div>
@@ -191,11 +221,11 @@ a, button, input, textarea, select { transition: all var(--transition-interactiv
           <label class="form-label" for="productType">Service Tier</label>
           <select class="form-select" id="productType" required>
             <option value="">Select&hellip;</option>
-            <option value="tier_1_web_application">Tier 1 — Web Application</option>
-            <option value="tier_2_data_stewardship">Tier 2 — Data Stewardship</option>
-            <option value="tier_3_expert_analysis">Tier 3 — Expert Analysis</option>
-            <option value="tier_4_data_education">Tier 4 — Data Education</option>
-            <option value="tier_5_custom_consultation">Tier 5 — Custom Consultation</option>
+            <option value="tier_1_web_application">Tier 1 &mdash; Web Application</option>
+            <option value="tier_2_data_stewardship">Tier 2 &mdash; Data Stewardship</option>
+            <option value="tier_3_expert_analysis">Tier 3 &mdash; Expert Analysis</option>
+            <option value="tier_4_data_education">Tier 4 &mdash; Data Education</option>
+            <option value="tier_5_custom_consultation">Tier 5 &mdash; Custom Consultation</option>
           </select>
         </div>
         <div class="form-group">
@@ -222,6 +252,118 @@ a, button, input, textarea, select { transition: all var(--transition-interactiv
   </div>
 </div>
 </div>
+
+<!-- ROLES SLIDE-OVER -->
+<div class="roles-overlay" id="rolesOverlay" onclick="closeRoles()"></div>
+<div class="roles-panel" id="rolesPanel" role="dialog" aria-label="Team Roles">
+  <div class="roles-panel-header">
+    <div class="roles-panel-title">Team Roles</div>
+    <button class="roles-panel-close" onclick="closeRoles()" aria-label="Close">&#x2715;</button>
+  </div>
+  <div class="roles-panel-body">
+    <p class="roles-intro">Every engagement moves through the pipeline carried by a defined set of roles. Each role maps to a stage and a responsibility. Here&rsquo;s how to talk about each one.</p>
+
+    <div class="role-card">
+      <div class="role-header">
+        <div class="role-icon" style="background:var(--color-primary-highlight);color:var(--color-primary)">&#128100;</div>
+        <div><div class="role-name">Admin</div><div class="role-slug">admin</div></div>
+      </div>
+      <div class="role-desc">Full system access. Manages users, configures roles, and has visibility across all engagements and schemas. This is the operator of the platform itself.</div>
+      <div class="role-stages"><span class="role-stage-tag">All stages</span><span class="role-stage-tag">System config</span></div>
+      <div class="role-talking"><div class="role-talking-label">Talking Points</div><ul>
+        <li>Think of Admin as the back-office operator &mdash; they see everything but touch the client-facing flow sparingly.</li>
+        <li>In our model, André and the core team hold this role initially.</li>
+        <li>Role provisioning is enforced at the database level via RLS, not just app logic.</li>
+      </ul></div>
+    </div>
+
+    <div class="role-card">
+      <div class="role-header">
+        <div class="role-icon" style="background:oklch(0.5 0.12 230 / 0.15);color:#6b9fd4">&#128269;</div>
+        <div><div class="role-name">Sales Agent</div><div class="role-slug">sales_agent</div></div>
+      </div>
+      <div class="role-desc">Owns the top of the funnel. Handles inbound leads, qualifies prospects, opens engagements, and shepherds the client through intake and scoping.</div>
+      <div class="role-stages"><span class="role-stage-tag">Intake</span><span class="role-stage-tag">Scoping</span></div>
+      <div class="role-talking"><div class="role-talking-label">Talking Points</div><ul>
+        <li>This is the first human touchpoint after a lead submits the intake form.</li>
+        <li>They qualify the engagement and assign the service tier before handing off.</li>
+        <li>In a small team, one person can cover sales_agent and operator_agent &mdash; the role separation still matters for auditability.</li>
+      </ul></div>
+    </div>
+
+    <div class="role-card">
+      <div class="role-header">
+        <div class="role-icon" style="background:var(--color-warning-highlight);color:var(--color-warning)">&#128196;</div>
+        <div><div class="role-name">Operator Agent</div><div class="role-slug">operator_agent</div></div>
+      </div>
+      <div class="role-desc">Takes the baton from Sales after scoping is complete. Writes the proposal, coordinates delivery, and manages the active engagement from proposal through review.</div>
+      <div class="role-stages"><span class="role-stage-tag">Proposal</span><span class="role-stage-tag">Active</span><span class="role-stage-tag">Review</span></div>
+      <div class="role-talking"><div class="role-talking-label">Talking Points</div><ul>
+        <li>The Operator is the project manager &mdash; they own execution quality and client communication during the work.</li>
+        <li>They&rsquo;re the ones who move a stage forward in the system once milestones are hit.</li>
+        <li>This role is where most of the billable coordination happens.</li>
+      </ul></div>
+    </div>
+
+    <div class="role-card">
+      <div class="role-header">
+        <div class="role-icon" style="background:var(--color-success-highlight);color:var(--color-success)">&#128187;</div>
+        <div><div class="role-name">Analyst Agent</div><div class="role-slug">analyst_agent</div></div>
+      </div>
+      <div class="role-desc">The technical practitioner. Runs the actual analysis, builds data pipelines, develops dashboards, and produces the deliverables tied to the engagement.</div>
+      <div class="role-stages"><span class="role-stage-tag">Active</span><span class="role-stage-tag">Review</span></div>
+      <div class="role-talking"><div class="role-talking-label">Talking Points</div><ul>
+        <li>Analysts are assigned to engagements, not companies &mdash; a single analyst can work multiple active engagements.</li>
+        <li>Their work is tracked at the task level inside each engagement.</li>
+        <li>This is where the Tier system matters most &mdash; Tier 3 (Expert Analysis) always has an analyst_agent as lead.</li>
+      </ul></div>
+    </div>
+
+    <div class="role-card">
+      <div class="role-header">
+        <div class="role-icon" style="background:oklch(0.5 0.1 290 / 0.15);color:#a86fdf">&#127891;</div>
+        <div><div class="role-name">Educator Agent</div><div class="role-slug">educator_agent</div></div>
+      </div>
+      <div class="role-desc">Leads Tier 4 data education engagements. Designs and delivers training, workshops, and enablement programs for client teams.</div>
+      <div class="role-stages"><span class="role-stage-tag">Scoping</span><span class="role-stage-tag">Active</span></div>
+      <div class="role-talking"><div class="role-talking-label">Talking Points</div><ul>
+        <li>Tier 4 is one of our highest-margin offerings &mdash; the Educator is the value driver here.</li>
+        <li>They co-design curriculum with the Operator during scoping, then own delivery.</li>
+        <li>The same role can also support analyst engagements where client upskilling is a component.</li>
+      </ul></div>
+    </div>
+
+    <div class="role-card">
+      <div class="role-header">
+        <div class="role-icon" style="background:oklch(0.5 0.12 40 / 0.15);color:#c8845a">&#129309;</div>
+        <div><div class="role-name">Client Agent</div><div class="role-slug">client_agent</div></div>
+      </div>
+      <div class="role-desc">The external-facing role. Clients and authorized client-side contacts have scoped, read-only visibility into their own engagement status and deliverables.</div>
+      <div class="role-stages"><span class="role-stage-tag">Active</span><span class="role-stage-tag">Review</span><span class="role-stage-tag">Complete</span></div>
+      <div class="role-talking"><div class="role-talking-label">Talking Points</div><ul>
+        <li>Clients only see their own data &mdash; this is enforced by Supabase RLS, not application logic.</li>
+        <li>This creates a natural client portal with zero additional infrastructure.</li>
+        <li>In the future, clients could log in and check status, download deliverables, or approve proposals &mdash; all within the same system.</li>
+      </ul></div>
+    </div>
+
+    <div class="role-card">
+      <div class="role-header">
+        <div class="role-icon" style="background:var(--color-surface-dynamic);color:var(--color-text-muted)">&#128274;</div>
+        <div><div class="role-name">Viewer</div><div class="role-slug">viewer</div></div>
+      </div>
+      <div class="role-desc">Read-only access to internal pipeline data. Useful for stakeholders, advisors, or external partners who need visibility but no edit permissions.</div>
+      <div class="role-stages"><span class="role-stage-tag">Read-only</span><span class="role-stage-tag">All stages</span></div>
+      <div class="role-talking"><div class="role-talking-label">Talking Points</div><ul>
+        <li>Viewer is the safe default for onboarding new team members before assigning a functional role.</li>
+        <li>Also useful for board-level or investor reporting &mdash; they can see pipeline health without touching anything.</li>
+        <li>All permission boundaries are live in the database today, not planned for later.</li>
+      </ul></div>
+    </div>
+
+  </div>
+</div>
+
 <div class="toast" id="toast">
   <span class="toast-icon" id="toastIcon"></span>
   <span id="toastMsg"></span>
@@ -285,6 +427,15 @@ function resetSim() {
   buildPipeline(0);
   document.getElementById('simStatusText').textContent = 'Ready to simulate intake flow →';
 }
+function openRoles() {
+  document.getElementById('rolesOverlay').classList.add('open');
+  document.getElementById('rolesPanel').classList.add('open');
+}
+function closeRoles() {
+  document.getElementById('rolesOverlay').classList.remove('open');
+  document.getElementById('rolesPanel').classList.remove('open');
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeRoles(); });
 async function api(path, method, body) {
   const opts = { method: method || 'GET', headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': method === 'POST' ? 'return=representation' : '' } };
   if (body) opts.body = JSON.stringify(body);
