@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Skunk Works — 207 Analytix</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -286,7 +289,7 @@ async function api(path, method, body) {
   const opts = { method: method || 'GET', headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': method === 'POST' ? 'return=representation' : '' } };
   if (body) opts.body = JSON.stringify(body);
   const res = await fetch(SUPABASE_URL + '/rest/v1/' + path, opts);
-  if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.message || 'Request failed'); }
+  if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.message || e.details || 'Request failed'); }
   return res.json().catch(() => null);
 }
 async function loadEngagements() {
@@ -333,7 +336,7 @@ async function submitIntake(e) {
     showToast('error', err.message || 'Submission failed');
   } finally {
     btn.disabled = false;
-    btn.textContent = '▶ Submit Project';
+    btn.innerHTML = '&#9658; Submit Project';
   }
 }
 function showToast(type, msg) {
